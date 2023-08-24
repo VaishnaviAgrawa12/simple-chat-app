@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <!-- <meta http-equiv="Content-Security-Policy" content="script-src  https://apis.google.com;"> -->
+  <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *;**script-src 'self' http://onlineerp.solution.quebec 'unsafe-inline' 'unsafe-eval';** "> -->
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App</title>
+ 
+  <style>
+    body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+#chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+#messages {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+#messages li {
+  padding: 5px 10px;
+  margin-bottom: 10px;
+  max-width: 70%;
+  border-radius: 8px;
+}
+
+.sent-message {
+  background-color: #DCF8C6;
+  align-self: flex-end;
+  width: 30%;
+}
+
+.received-message {
+  background-color:  #007bff;
+  align-self: flex-start;
+  width: 30%;
+}
+
+#form {
+  display: flex;
+  align-items: center;
+}
+
+#input {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+#sendButton {
+  background-color: #007bff;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+#sendButton:hover {
+  background-color: #0056b3;
+}
+
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <ul id="messages"></ul>
+    <form id="form" action="">
+      <input id="input" autocomplete="off" /><button id="sendButton">Send</button>
+    </form>
+  </div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+ 
+</body>
+<script>
+
+
+const socket = io();
+let messageIndex = 0;
+
+const emojiMap = {
+    'react': '⚛️',
+    'woah': '😮',
+    'hey': '👋',
+    'lol': '😂',
+    'like': '👍',
+    'congrats': '🎉'
+  };
+
+
+
+
+document.getElementById('form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const messageInput = document.getElementById('input');
+  let message = messageInput.value;
+
+
+  function replaceWordsWithEmojis(message) {
+  let transformedMessage = message.toLowerCase();
+
+  const words = transformedMessage.split(/\s+/);
+  
+  for (let i = 0; i < words.length; i++) {
+    switch (words[i]) {
+      case 'woah':
+        words[i] = '😮';
+        break;
+      case 'hey':
+        words[i] = '👋';
+        break;
+      case 'lol':
+        words[i] = '😂';
+        break;
+      case 'like':
+        words[i] = '👍';
+        break;
+      case 'congrats':
+        words[i] = '🎉';
+        break;
+      // Add more cases for other words
+    }
+  }
+
+  return words.join(' ');
+}
+
+const inputMessage = message;
+const transformedMessage = replaceWordsWithEmojis(inputMessage);
+message.value = transformedMessage;
+
+  if (message.trim() !== '') {
+    socket.emit('chat message', message);
+    messageInput.value = '';
+    messageIndex++;
+
+  }
+
+        
+
+for (const word in emojiMap) {
+    if (emojiMap.hasOwnProperty(word)) {
+      message = message.replace(new RegExp('\\b' + word + '\\b', 'g'), emojiMap[word]);
+    }
+  }
+
+
+  
+});
+
+
+
+socket.on('chat message', (msg) => {
+  const messagesList = document.getElementById('messages');
+  const li = document.createElement('li');
+  li.textContent = msg;
+
+    // Replace words with emojis
+    
+
+
+  if (messageIndex % 2 == 0) {
+    li.classList.add('sent-message');
+  } else {
+    li.classList.add('received-message');
+  }
+
+
+  messagesList.appendChild(li);
+  window.scrollTo(0, document.body.scrollHeight);
+});
+
+
+
+</script>
+</html>
